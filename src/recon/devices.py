@@ -88,7 +88,10 @@ def cameras() -> list[Device]:
 
 
 def microphones() -> list[Device]:
-    return _collect("Audio/Source", "pulse")
+    devices = _collect("Audio/Source", "pulse")
+    if os.environ.get("RECON_CAMARA_PRUEBA"):
+        devices.insert(0, Device(TEST_CAMERA, "Micrófono de prueba"))
+    return devices
 
 
 # --- Formato de la cámara ----------------------------------------------------------

@@ -90,6 +90,7 @@ class Daemon:
         self.recorder.ready.connect(self._ready)
         self.recorder.finished.connect(self._finished)
         self.recorder.failed.connect(self._failed)
+        self.recorder.warning.connect(notify)
         self.recorder.state_changed.connect(self._state_changed)
         self.recorder.mic_changed.connect(self._mic_changed)
         self.replay.saved.connect(self._replay_saved)

@@ -8,6 +8,48 @@ import subprocess
 from .qt import QCursor, QGuiApplication, QRect
 
 
+def x11_compositing() -> bool:
+    """Si hay un compositor en X11 (ventanas con transparencia). Sin él, las zonas
+    transparentes salen negras (XFCE o MATE con el compositor apagado, i3…)."""
+    import ctypes
+    import ctypes.util
+
+    name = ctypes.util.find_library("X11")
+    if not name or not os.environ.get("DISPLAY"):
+        return True
+    try:
+        xlib = ctypes.CDLL(name)
+        xlib.XOpenDisplay.restype = ctypes.c_void_p
+        xlib.XInternAtom.restype = ctypes.c_ulong
+        xlib.XInternAtom.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int]
+        xlib.XGetSelectionOwner.restype = ctypes.c_ulong
+        xlib.XGetSelectionOwner.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+        xlib.XDefaultScreen.argtypes = [ctypes.c_void_p]
+        xlib.XCloseDisplay.argtypes = [ctypes.c_void_p]
+        display = xlib.XOpenDisplay(None)
+        if not display:
+            return True
+        atom = xlib.XInternAtom(display, f"_NET_WM_CM_S{xlib.XDefaultScreen(display)}".encode(), 0)
+        owner = xlib.XGetSelectionOwner(display, atom)
+        xlib.XCloseDisplay(display)
+        return bool(owner)
+    except (OSError, AttributeError):
+        return True
+
+
+_composited = None
+
+
+def composited() -> bool:
+    """Wayland siempre compone; en X11 se comprueba una vez."""
+    global _composited
+    if _composited is None:
+        from . import config
+
+        _composited = config.session_type() == "wayland" or x11_compositing()
+    return _composited
+
+
 def native_rect(screen) -> QRect:
     """Rectángulo de la pantalla en píxeles reales (Qt trabaja en píxeles lógicos)."""
     g, ratio = screen.geometry(), screen.devicePixelRatio()

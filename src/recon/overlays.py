@@ -17,6 +17,14 @@ def _overlay_flags(widget: QWidget, tool: bool = True):
     widget.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
 
+def _shape(widget: QWidget, path: QPainterPath):
+    """Sin compositor (X11), la forma se recorta con una máscara para que no salga un recuadro negro."""
+    if not screens.composited():
+        from .qt import QRegion
+
+        widget.setMask(QRegion(path.toFillPolygon().toPolygon()))
+
+
 # --- Elegir un área -----------------------------------------------------------------------
 
 
@@ -33,6 +41,8 @@ class AreaPicker(QWidget):
         self.setMouseTracking(True)
         self.screen_obj = screens.screen_at_cursor()
         self.setGeometry(self.screen_obj.geometry())
+        # Sin compositor no hay transparencia: se pinta una captura de la pantalla debajo.
+        self.background = None if screens.composited() else self.screen_obj.grabWindow(0)
         self.origin: QPoint | None = None
         self.rect_sel = QRect(previous) if previous is not None and not previous.isEmpty() else QRect()
         if not self.rect_sel.isEmpty() and not QRect(QPoint(0, 0), self.size()).contains(self.rect_sel):
@@ -99,6 +109,8 @@ class AreaPicker(QWidget):
         t = theme.current()
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        if self.background is not None:
+            painter.drawPixmap(self.rect(), self.background)
         veil = QPainterPath()
         veil.addRect(QRectF(self.rect()))
         if not self.rect_sel.isEmpty():
@@ -151,6 +163,10 @@ class Countdown(QWidget):
     def start(self):
         screen = screens.screen_at_cursor().geometry()
         self.move(screen.center().x() - self.width() // 2, screen.center().y() - self.height() // 2)
+        shape = QPainterPath()
+        shape.addEllipse(QRectF(40, 20, 180, 180))
+        shape.addRoundedRect(QRectF(0, 222, self.width(), 30), 15, 15)
+        _shape(self, shape)
         self.show()
         self.raise_()
         self.activateWindow()
@@ -305,7 +321,15 @@ class ControlBar(QWidget):
         self.move(x, y)
 
     def start(self, avoid: QRect | None = None):
+        request = self.recorder.request
+        self.mic_btn.setVisible(bool(request and (request.mic_key or request.system_audio)))
+        self._mic(self.recorder.mic_muted)
         self.place(avoid)
+        t = theme.current()
+        shape = QPainterPath()
+        radius = self.height() / 2 if t.shape.pill_primary else t.shape.radius
+        shape.addRoundedRect(QRectF(0, 0, self.width(), self.height()), radius, radius)
+        _shape(self, shape)
         self.refresh()
         self.show()
         self.timer.start(250)

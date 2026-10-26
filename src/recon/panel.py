@@ -133,7 +133,7 @@ class Panel(QWidget):
         self.fps = Combo(surface)
         for fps in (30, 60):
             self.fps.addItem(f"{fps} fps", fps)
-        self.fps.setFixedWidth(96)
+        self.fps.setFixedWidth(112)
         body.addLayout(row(self.quality, self.fps))
 
         self.record_btn = QPushButton("Empezar a grabar", surface)
@@ -307,6 +307,17 @@ class Panel(QWidget):
         self.raise_()
         self.activateWindow()
         QTimer.singleShot(0, self.refresh_devices)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if not screens.composited():
+            # Sin compositor (X11) las esquinas transparentes saldrían negras.
+            from .qt import QPainterPath, QRectF, QRegion
+
+            path = QPainterPath()
+            radius = theme.current().shape.radius
+            path.addRoundedRect(QRectF(0, 0, self.width(), self.height()), radius, radius)
+            self.setMask(QRegion(path.toFillPolygon().toPolygon()))
 
     def hideEvent(self, event):
         self.feed.stop()

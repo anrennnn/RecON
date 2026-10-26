@@ -61,6 +61,7 @@ class Recorder(QObject):
     mic_changed = pyqtSignal(bool)       # True = silenciado
     finished = pyqtSignal(object)        # Path del MP4
     failed = pyqtSignal(str)
+    warning = pyqtSignal(str)            # se sigue grabando, pero sin algo (cámara o sonido)
     saving_progress = pyqtSignal(float)
 
     def __init__(self, settings: config.Settings, parent=None):
@@ -253,18 +254,37 @@ class Recorder(QObject):
         self.pipe = pipe
         self.segments.append(location)
         if pipe.set_state(Gst.State.PLAYING) == Gst.StateChangeReturn.FAILURE:
-            detail = ""
+            detail, culprit = "", ""
             error = bus.pop_filtered(Gst.MessageType.ERROR)
             if error is not None:
                 gerror, debug = error.parse_error()
                 detail = f" ({gerror.message})"
-                print("Error de GStreamer:", gerror.message, debug)
+                culprit = error.src.get_name() if error.src is not None else ""
+                print("Error de GStreamer:", culprit, gerror.message, debug)
             self._teardown()
-            self.failed.emit(f"No se pudo empezar a grabar{detail}. Comprueba la cámara y el micrófono.")
+            self.segments.pop()
+            if self._drop_failed_input(culprit):
+                return self._start_segment()
+            self.failed.emit(f"No se pudo empezar a grabar{detail}.")
             return False
         self.segment_started = time.monotonic()
         self._set_state("recording")
         return True
+
+    def _drop_failed_input(self, element: str) -> bool:
+        """Si falla el micrófono o la cámara (p. ej. la usa otra app), se graba sin ella."""
+        request = self.request
+        if element.startswith(("pulsesrc", "audiotestsrc")) or (
+                element.startswith("pipewiresrc") and not request.uses_screen):
+            if request.mic_key or request.system_audio:
+                request.mic_key, request.system_audio = "", False
+                self.warning.emit("No se pudo abrir el micrófono: se graba sin sonido.")
+                return True
+        if element.startswith(("v4l2src", "decodebin", "jpegdec")) and request.uses_camera and request.uses_screen:
+            request.camera_key = ""
+            self.warning.emit("La cámara no responde (¿la está usando otra aplicación?): se graba sin ella.")
+            return True
+        return False
 
     def _on_message(self, _bus, message):
         if message.type == Gst.MessageType.EOS:
