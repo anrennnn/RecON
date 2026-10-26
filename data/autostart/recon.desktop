@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=RecON
+Comment=Deja RecON listo para grabar con los atajos
+Exec=recon segundo-plano
+Icon=recon
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-Delay=5

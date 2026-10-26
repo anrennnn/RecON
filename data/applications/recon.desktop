@@ -1,0 +1,45 @@
+[Desktop Entry]
+Type=Application
+Name=RecON
+GenericName=Grabador de pantalla
+Comment=Graba la pantalla y la webcam; recorta, quita silencios y transcribe sin internet
+Exec=recon abrir
+Icon=recon
+Terminal=false
+Categories=AudioVideo;Video;Recorder;Utility;
+Keywords=grabar;pantalla;screen;recorder;webcam;cámara;loom;screencast;vídeo;video;tutorial;
+StartupNotify=false
+Actions=grabar;pausa;micro;repeticion;abrir;biblioteca;ajustes;
+X-KDE-Shortcuts=Meta+Alt+O
+
+[Desktop Action grabar]
+Name=Empezar o detener la grabación
+Exec=recon grabar
+X-KDE-Shortcuts=Meta+Alt+R
+
+[Desktop Action pausa]
+Name=Pausar o seguir grabando
+Exec=recon pausa
+X-KDE-Shortcuts=Meta+Alt+P
+
+[Desktop Action micro]
+Name=Silenciar o activar el micrófono
+Exec=recon micro
+X-KDE-Shortcuts=Meta+Alt+M
+
+[Desktop Action repeticion]
+Name=Guardar los últimos segundos
+Exec=recon repeticion
+X-KDE-Shortcuts=Meta+Alt+G
+
+[Desktop Action abrir]
+Name=Abrir RecON
+Exec=recon abrir
+
+[Desktop Action biblioteca]
+Name=Biblioteca de grabaciones
+Exec=recon biblioteca
+
+[Desktop Action ajustes]
+Name=Ajustes
+Exec=recon ajustes

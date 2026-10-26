@@ -1,0 +1,23 @@
+Package: recon
+Version: @VERSION@
+Section: video
+Priority: optional
+Architecture: all
+Depends: python3 (>= 3.10), python3-pyqt6 | python3-pyqt5, python3-gi, python3-gi-cairo, gir1.2-gstreamer-1.0, gir1.2-gst-plugins-base-1.0, gstreamer1.0-plugins-base, gstreamer1.0-plugins-good, gstreamer1.0-plugins-bad, gstreamer1.0-plugins-ugly, gstreamer1.0-pulseaudio, gstreamer1.0-pipewire, gstreamer1.0-x, ffmpeg, libnotify-bin
+Recommends: xdg-desktop-portal, x11-utils, python3-venv
+Installed-Size: @SIZE@
+Maintainer: RecON <recon@users.noreply.github.com>
+Homepage: https://github.com/anrennnn/RecON
+Description: Grabador de pantalla y webcam pensado para la productividad
+ Graba la pantalla completa, una ventana o un área, con la cámara en una
+ burbuja redonda, el micrófono y el sonido del ordenador. Se maneja con
+ atajos al estilo de la Xbox Game Bar (Super+Alt+R) y tiene repetición
+ instantánea para guardar los últimos segundos.
+ .
+ Al terminar, todo se hace en el equipo y sin internet: copiar el vídeo para
+ pegarlo en un chat, recortar, quitar silencios, reducir el ruido, exportar
+ para WhatsApp o correo y, de forma opcional, transcribir y crear subtítulos
+ con Whisper.
+ .
+ Funciona en GNOME, KDE Plasma, Cinnamon, XFCE y MATE, en X11 y Wayland, y
+ adapta su aspecto a cada escritorio.
